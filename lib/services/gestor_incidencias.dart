@@ -14,7 +14,14 @@ class GestorIncidencias {
 
   List<Incidencia> buscar(String texto) {
     if (texto.trim().isEmpty) return incidencias;
-    return incidencias.where((x) => x.titulo.contains(texto)).toList();
+    //Convertir texto a minusculas y hacer trim.
+    //Retornar las incidencias en titulo, descripcion y cliente
+    String textostandar = texto.trim().toLowerCase();
+    
+    return incidencias.where((x) => 
+    x.titulo.trim().toLowerCase().contains(textostandar) || 
+    x.descripcion.trim().toLowerCase().contains(textostandar) || 
+    x.cliente.trim().toLowerCase().contains(textostandar) ).toList();
   }
 
   Incidencia? porId(String id) {
@@ -25,7 +32,7 @@ class GestorIncidencias {
   }
 
   int contar(String estado) {
-    if (estado == 'Pendiente') return cantidadPendientes;
+    //if (estado == 'Pendiente') return cantidadPendientes;
     return incidencias.where((x) => x.estado == estado).length;
   }
 
