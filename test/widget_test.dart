@@ -13,6 +13,24 @@ void main() {
       'fecha': '2026-10-12',
     });
     expect(registro.id, 'INC-DEMO');
+    expect(registro.prioridad, 'Media');
     expect(registro.toJson()['estado'], 'Pendiente');
+    expect(registro.toJson()['prioridad'], 'Media');
+  });
+
+  test('La prioridad se conserva al convertir desde y hacia JSON', () {
+    final registro = Incidencia.desdeJson({
+      'id': 'INC-PRIORIDAD',
+      'prioridad': 'Alta',
+    });
+
+    expect(registro.prioridad, 'Alta');
+    expect(
+        Incidencia.desdeJson({
+          'id': 'INC-PRIORIDAD-INVALIDA',
+          'prioridad': 'Urgente',
+        }).prioridad,
+        'Media');
+    expect(registro.toJson()['prioridad'], 'Alta');
   });
 }

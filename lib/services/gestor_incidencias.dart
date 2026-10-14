@@ -48,7 +48,7 @@ class GestorIncidencias {
   }
 
   Future<void> crear(String titulo, String descripcion, String cliente,
-      String categoria) async {
+      String categoria, String prioridad) async {
     final nuevo = Incidencia(
       id: 'INC-${DateTime.now().microsecondsSinceEpoch}',
       titulo: titulo,
@@ -56,10 +56,33 @@ class GestorIncidencias {
       cliente: cliente,
       categoria: categoria,
       estado: 'Pendiente',
+      prioridad: prioridad,
       fecha: DateTime.now().toIso8601String().split('T').first,
     );
     incidencias.insert(0, nuevo);
     cantidadPendientes++;
+    await datos.guardar(incidencias);
+  }
+
+  Future<void> actualizar(
+    String id, {
+    required String titulo,
+    required String descripcion,
+    required String cliente,
+    required String categoria,
+    required String prioridad,
+  }) async {
+    final item = porId(id);
+    if (item == null) {
+      throw StateError('No se encontró la incidencia $id');
+    }
+
+    item
+      ..titulo = titulo
+      ..descripcion = descripcion
+      ..cliente = cliente
+      ..categoria = categoria
+      ..prioridad = prioridad;
     await datos.guardar(incidencias);
   }
 

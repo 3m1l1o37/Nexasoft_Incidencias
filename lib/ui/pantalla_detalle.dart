@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../model/incidencia.dart';
 import '../services/gestor_incidencias.dart';
+import 'pantalla_nueva.dart';
 
 class PantallaDetalle extends StatefulWidget {
   final GestorIncidencias gestor;
@@ -13,6 +14,19 @@ class PantallaDetalle extends StatefulWidget {
 
 class _PantallaDetalleState extends State<PantallaDetalle> {
   bool guardando = false;
+
+  Future<void> editar() async {
+    final item = widget.gestor.porId(widget.id);
+    if (item == null) return;
+
+    final actualizado = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PantallaNueva(gestor: widget.gestor, incidencia: item),
+      ),
+    );
+    if (actualizado == true && mounted) setState(() {});
+  }
 
   Future<void> cambiar(String? valor) async {
     if (valor == null) return;
@@ -44,7 +58,17 @@ class _PantallaDetalleState extends State<PantallaDetalle> {
   Widget build(BuildContext context) {
     final Incidencia? item = widget.gestor.porId(widget.id);
     return Scaffold(
-      appBar: AppBar(title: const Text('Detalle de incidencia')),
+      appBar: AppBar(
+        title: const Text('Detalle de incidencia'),
+        actions: [
+          if (item != null)
+            IconButton(
+              tooltip: 'Modificar incidencia',
+              onPressed: guardando ? null : editar,
+              icon: const Icon(Icons.edit_outlined),
+            ),
+        ],
+      ),
       body: item == null
           ? const Center(child: Text('Incidencia no encontrada'))
           : Center(
@@ -63,6 +87,7 @@ class _PantallaDetalleState extends State<PantallaDetalle> {
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                           fila('Cliente', item.cliente),
                           fila('Categoría', item.categoria),
+                          fila('Prioridad', item.prioridad),
                           fila('Fecha de reporte', item.fecha),
                           fila('Descripción', item.descripcion),
                         ]),

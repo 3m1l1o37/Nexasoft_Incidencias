@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import '../model/incidencia.dart';
 import '../services/gestor_incidencias.dart';
 
 class PantallaNueva extends StatefulWidget {
   final GestorIncidencias gestor;
-  const PantallaNueva({super.key, required this.gestor});
+  final Incidencia? incidencia;
+  const PantallaNueva({super.key, required this.gestor, this.incidencia});
 
   @override
   State<PantallaNueva> createState() => _PantallaNuevaState();
@@ -15,7 +17,21 @@ class _PantallaNuevaState extends State<PantallaNueva> {
   final descripcion = TextEditingController();
   final cliente = TextEditingController();
   String categoria = 'Software';
+  String prioridad = 'Media';
   bool ocupado = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final item = widget.incidencia;
+    if (item != null) {
+      titulo.text = item.titulo;
+      descripcion.text = item.descripcion;
+      cliente.text = item.cliente;
+      categoria = item.categoria;
+      prioridad = item.prioridad;
+    }
+  }
 
   @override
   void dispose() {
@@ -29,13 +45,32 @@ class _PantallaNuevaState extends State<PantallaNueva> {
     if (!(llave.currentState?.validate() ?? false)) return;
     setState(() => ocupado = true);
     try {
-      await widget.gestor.crear(
-        titulo.text.trim(), descripcion.text.trim(), cliente.text.trim(), categoria,
-      );
+      final item = widget.incidencia;
+      if (item == null) {
+        await widget.gestor.crear(
+          titulo.text.trim(),
+          descripcion.text.trim(),
+          cliente.text.trim(),
+          categoria,
+          prioridad,
+        );
+      } else {
+        await widget.gestor.actualizar(
+          item.id,
+          titulo: titulo.text.trim(),
+          descripcion: descripcion.text.trim(),
+          cliente: cliente.text.trim(),
+          categoria: categoria,
+          prioridad: prioridad,
+        );
+      }
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No se pudo registrar: $e')));
+        final accion = widget.incidencia == null ? 'registrar' : 'actualizar';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('No se pudo $accion: $e')),
+        );
       }
     } finally {
       if (mounted) setState(() => ocupado = false);
@@ -56,8 +91,11 @@ class _PantallaNuevaState extends State<PantallaNueva> {
 
   @override
   Widget build(BuildContext context) {
+    final editando = widget.incidencia != null;
     return Scaffold(
-      appBar: AppBar(title: const Text('Registrar incidencia')),
+      appBar: AppBar(
+        title: Text(editando ? 'Modificar incidencia' : 'Registrar incidencia'),
+      ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 650),
@@ -66,7 +104,10 @@ class _PantallaNuevaState extends State<PantallaNueva> {
             child: ListView(
               padding: const EdgeInsets.all(20),
               children: [
-                const Text('Nuevo reporte', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                Text(
+                  editando ? 'Modificar reporte' : 'Nuevo reporte',
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 15),
                 campo('Título', titulo),
                 campo('Descripción', descripcion, lineas: 4),
@@ -78,11 +119,20 @@ class _PantallaNuevaState extends State<PantallaNueva> {
                       .map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
                   onChanged: ocupado ? null : (v) => setState(() => categoria = v ?? 'Software'),
                 ),
+                const SizedBox(height: 15),
+                DropdownButtonFormField<String>(
+                  value: prioridad,
+                  decoration: const InputDecoration(labelText: 'Prioridad', border: OutlineInputBorder()),
+                  items: Incidencia.prioridades
+                      .map((p) => DropdownMenuItem(value: p, child: Text(p)))
+                      .toList(),
+                  onChanged: ocupado ? null : (v) => setState(() => prioridad = v ?? 'Media'),
+                ),
                 const SizedBox(height: 24),
                 FilledButton.icon(
                   onPressed: ocupado ? null : guardar,
-                  icon: const Icon(Icons.save_outlined),
-                  label: const Text('Registrar'),
+                  icon: Icon(editando ? Icons.save_outlined : Icons.add),
+                  label: Text(editando ? 'Guardar cambios' : 'Registrar'),
                 ),
               ],
             ),
