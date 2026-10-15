@@ -16,6 +16,15 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
   bool cargando = true;
   String? error;
   String busqueda = '';
+  String estadoSeleccionado = 'Todas';
+  String prioridadSeleccionada = 'Todas';
+  final TextEditingController controladorBusqueda = TextEditingController();
+
+  @override
+  void dispose() {
+    controladorBusqueda.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -84,7 +93,11 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
 
   @override
   Widget build(BuildContext context) {
-    final items = g.buscar(busqueda);
+    final items = g.buscar(
+      busqueda,
+      estado: estadoSeleccionado,
+      prioridad: prioridadSeleccionada,
+    );
     return Scaffold(
       appBar: AppBar(
         title: const Text('NexaSoft | Incidencias'),
@@ -151,6 +164,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 5),
                           child: TextField(
+                            controller: controladorBusqueda,
                             decoration: const InputDecoration(
                               labelText: 'Buscar incidencias',
                               hintText: 'Ejemplo: WiFi, correo, pantalla',
@@ -158,6 +172,114 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
                               border: OutlineInputBorder(),
                             ),
                             onChanged: (texto) => setState(() => busqueda = texto),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 17,
+                            vertical: 4,
+                          ),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: DropdownButtonFormField<String>(
+                                      value: prioridadSeleccionada,
+                                      isExpanded: true,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Prioridad',
+                                        border: OutlineInputBorder(),
+                                        contentPadding: EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 10,
+                                        ),
+                                      ),
+                                      items: const [
+                                        DropdownMenuItem(
+                                          value: 'Todas',
+                                          child: Text('Todas'),
+                                        ),
+                                        DropdownMenuItem(
+                                          value: 'Baja',
+                                          child: Text('Baja'),
+                                        ),
+                                        DropdownMenuItem(
+                                          value: 'Media',
+                                          child: Text('Media'),
+                                        ),
+                                        DropdownMenuItem(
+                                          value: 'Alta',
+                                          child: Text('Alta'),
+                                        ),
+                                      ],
+                                      onChanged: (valor) {
+                                        if (valor != null) {
+                                          setState(
+                                            () => prioridadSeleccionada = valor,
+                                          );
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: DropdownButtonFormField<String>(
+                                      value: estadoSeleccionado,
+                                      isExpanded: true,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Estado',
+                                        border: OutlineInputBorder(),
+                                        contentPadding: EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 10,
+                                        ),
+                                      ),
+                                      items: const [
+                                        DropdownMenuItem(
+                                          value: 'Todas',
+                                          child: Text('Todas'),
+                                        ),
+                                        DropdownMenuItem(
+                                          value: 'Pendiente',
+                                          child: Text('Pendiente'),
+                                        ),
+                                        DropdownMenuItem(
+                                          value: 'En proceso',
+                                          child: Text('En proceso'),
+                                        ),
+                                        DropdownMenuItem(
+                                          value: 'Resuelta',
+                                          child: Text('Resuelta'),
+                                        ),
+                                      ],
+                                      onChanged: (valor) {
+                                        if (valor != null) {
+                                          setState(
+                                            () => estadoSeleccionado = valor,
+                                          );
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: TextButton.icon(
+                                  onPressed: () {
+                                    controladorBusqueda.clear();
+                                    setState(() {
+                                      busqueda = '';
+                                      estadoSeleccionado = 'Todas';
+                                      prioridadSeleccionada = 'Todas';
+                                    });
+                                  },
+                                  icon: const Icon(Icons.filter_alt_off),
+                                  label: const Text('Restablecer filtros'),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         Padding(

@@ -2,7 +2,7 @@ import '../data/almacen_local.dart';
 import '../model/incidencia.dart';
 
 class GestorIncidencias {
-  final AlmacenLocal datos = AlmacenLocal();
+  late final AlmacenLocal datos = AlmacenLocal();
   List<Incidencia> incidencias = [];
   int cantidadPendientes = 0;
 
@@ -12,16 +12,24 @@ class GestorIncidencias {
         incidencias.where((x) => x.estado == 'Pendiente').length;
   }
 
-  List<Incidencia> buscar(String texto) {
-    if (texto.trim().isEmpty) return incidencias;
-    //Convertir texto a minusculas y hacer trim.
-    //Retornar las incidencias en titulo, descripcion y cliente
-    String textostandar = texto.trim().toLowerCase();
-    
-    return incidencias.where((x) => 
-    x.titulo.trim().toLowerCase().contains(textostandar) || 
-    x.descripcion.trim().toLowerCase().contains(textostandar) || 
-    x.cliente.trim().toLowerCase().contains(textostandar) ).toList();
+  List<Incidencia> buscar(
+    String texto, {
+    String estado = 'Todas',
+    String prioridad = 'Todas',
+  }) {
+    final textoEstandar = texto.trim().toLowerCase();
+
+    return incidencias.where((incidencia) {
+      final coincideTexto = textoEstandar.isEmpty ||
+          incidencia.titulo.trim().toLowerCase().contains(textoEstandar) ||
+          incidencia.descripcion.trim().toLowerCase().contains(textoEstandar) ||
+          incidencia.cliente.trim().toLowerCase().contains(textoEstandar);
+      final coincideEstado = estado == 'Todas' || incidencia.estado == estado;
+      final coincidePrioridad =
+          prioridad == 'Todas' || incidencia.prioridad == prioridad;
+
+      return coincideTexto && coincideEstado && coincidePrioridad;
+    }).toList();
   }
 
   Incidencia? porId(String id) {
